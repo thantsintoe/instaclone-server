@@ -2,25 +2,25 @@ const app = require('../../../server');
 const request = require('supertest');
 const { expect } = require('chai');
 const faker = require('faker');
+const User = require('../../../models/user');
+const Post = require('../../../models/post');
 
-let userToken;
-const random = Math.floor(Math.random(3));
+let user;
 
 before((done) => {
-  request(app)
-    .post('/signin')
-    .send({
-      username: 'thantsintoe',
-      password: 'password',
-    })
-    .expect((res) => {
-      userToken = res.body.token;
-    })
-    .end(done);
+  User.create({
+    socialId: '115296914622746541788',
+    socialPlatform: 'google',
+    displayName: 'ThantSin Toe',
+  }, (error, createdUser) => {
+    console.log(createdUser)
+    user = createdUser;
+    done();
+  });
 });
 
-describe('Create a Product', () => {
-  it('create a new product for valid category', (done) => {
+describe('Create a new post', () => {
+  it('create a new post for valid input', (done) => {
     const requestBody = {
       product: {
         name: faker.commerce.productName(),
@@ -70,6 +70,5 @@ describe('Create a Product', () => {
       .expect(501)
       .end(done);
   });
-
 });
 
