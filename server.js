@@ -17,8 +17,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const ejs = require('ejs');
 const passport = require('passport');
-const cookieParser = require('cookie-parser');
-const expressSession = require('express-session');
 const config = require('./config/config');
 
 const credentials = { key: privateKey, cert: certificate };
@@ -27,12 +25,16 @@ const app = express();
 const { databaseURL } = config[process.env.NODE_ENV];
 mongoose.connect(databaseURL);
 
-passport.serializeUser((user, cb) => {
-  cb(null, user);
-});
-
-passport.deserializeUser((obj, cb) => {
-  cb(null, obj);
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+  if (req.method === 'OPTIONS') {
+    res.send(200);
+  } else {
+    next();
+  }
 });
 
 // middlewares
@@ -42,12 +44,6 @@ app.use(bodyParser.json({ type: '*/*' }));
 app.use(express.static(`${__dirname}/public`));
 app.set('views', `${__dirname}/public`);
 app.set('view engine', 'ejs');
-
-app.use(cookieParser());
-app.use(expressSession({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 authRouter(app);
 postRouter(app);

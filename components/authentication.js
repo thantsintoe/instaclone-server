@@ -4,10 +4,10 @@ const config = require('../config');
 
 const generateTokenForUser = (user) => {
   const timeStamp = new Date().getTime();
-  return jwt.encode({ sub: user.id, iat: timeStamp }, config.secret);
+  return jwt.encode({ sub: user._id, iat: timeStamp }, config.secret);
 };
 exports.signup = (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, password, email } = req.body;
 
   // send err if no username or password provided
   if (!username || !password) {
@@ -25,6 +25,7 @@ exports.signup = (req, res, next) => {
   // create new user
   const user = new User({
     username,
+    email,
     password,
   });
 
@@ -36,6 +37,5 @@ exports.signup = (req, res, next) => {
 };
 
 exports.signin = (req, res) => {
-  // passport already checked username & pswd, so just give user a token
   res.send({ token: generateTokenForUser(req.user) });
 };

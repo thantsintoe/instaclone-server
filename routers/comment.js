@@ -1,10 +1,13 @@
 const { respond, ensureAuthenticated } = require('../components/util');
 const commentComponent = require('../components/comment');
+const passport = require('passport');
+
+const requireAuth = passport.authenticate('jwt', { session: false });
 
 module.exports = (app) => {
   app.post(
     '/api/comment',
-    // ensureAuthenticated,
+    requireAuth,
     commentComponent.createComment,
     respond,
   );

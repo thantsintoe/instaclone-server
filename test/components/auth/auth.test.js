@@ -2,6 +2,23 @@ const app = require('../../../server');
 const request = require('supertest');
 const { expect } = require('chai');
 
+let token;
+
+before((done) => {
+  request(app)
+    .post('/signup')
+    .send({
+      username: 'thantsintoe',
+      password: 'password',
+    })
+    .expect(200)
+    .expect((res) => {
+      expect(res.body).to.have.property('token');
+      token = res.body.token || null;
+    })
+    .end(done);
+});
+
 describe('Signin Route Handler', () => {
   it('should sign in and get token for thantsintoe', (done) => {
     request(app)
