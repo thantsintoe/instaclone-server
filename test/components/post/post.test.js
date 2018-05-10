@@ -13,7 +13,7 @@ before((done) => {
     socialPlatform: 'google',
     displayName: 'ThantSin Toe',
   }, (error, createdUser) => {
-    console.log(createdUser)
+    console.log(createdUser);
     user = createdUser;
     done();
   });
@@ -22,17 +22,9 @@ before((done) => {
 describe('Create a new post', () => {
   it('create a new post for valid input', (done) => {
     const requestBody = {
-      product: {
-        name: faker.commerce.productName(),
-        price: faker.commerce.price(),
-        productDetail: {
-          description: faker.commerce.productAdjective(),
-          brand: faker.company.companyName(),
-          condition: 'used',
-          imageURL: [],
-          status: 'active',
-          category: categoryArr[random],
-        },
+      post: {
+        title: 'Good Morning Everyone',
+        photo: 'abc/def.jpg',
       },
     };
 

@@ -1,16 +1,19 @@
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 const User = require('../models/user');
-const { asyncErrorHandlerMiddleware } = require('./util');
+const { asyncErrorHandlerMiddleware, MayBe } = require('./util');
 const R = require('ramda');
 
 exports.createComment = asyncErrorHandlerMiddleware(async (req, res, next) => {
   const inputComment = req.body.comment;
   const { user } = req;
 
-  const existingPost = await Post.findById(inputComment.post);
+  let existingPost;
+  if (inputComment) {
+    existingPost = await Post.findById(inputComment.post);
+  }
 
-  if (existingPost) {
+  if (!R.isNil(existingPost)) {
     const newComment = await new Comment({
       ...inputComment,
       owner: user._id,
@@ -27,7 +30,12 @@ exports.createComment = asyncErrorHandlerMiddleware(async (req, res, next) => {
     };
     next();
   } else {
-    throw new Error('Post not found...');
+    res.status(501);
+    res.response = {
+      code: 501,
+      error: 'Post Not found...',
+    };
+    next();
   }
 });
 

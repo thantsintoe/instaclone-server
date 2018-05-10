@@ -1,12 +1,16 @@
 const passport = require('passport');
 const User = require('../models/user');
 const { Strategy } = require('passport-facebook');
+const LocalStrategy = require('passport-local');
+const JwtStragety = require('passport-jwt').Strategy;
+const { ExtractJwt } = require('passport-jwt');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const { facebookConfig, googleConfig } = require('../config/config');
+const config = require('../config');
 
 const baseURL = 'https://localhost:8443';
 
-passport.use(new Strategy(
+const facebookLoginStrategy = new Strategy(
   {
     clientID: facebookConfig.clientID,
     clientSecret: facebookConfig.clientSecret,
@@ -31,9 +35,10 @@ passport.use(new Strategy(
       });
     });
   }),
-));
+);
 
-passport.use(new GoogleStrategy(
+
+let googleLoginStrategy = new GoogleStrategy(
   {
     clientID: googleConfig.clientID,
     clientSecret: googleConfig.clientSecret,
@@ -58,4 +63,45 @@ passport.use(new GoogleStrategy(
       });
     });
   }),
-));
+);
+
+// Local Stragety Setup
+const localOption = { usernameField: 'username' };
+const localLogin = new LocalStrategy(localOption, (username, password, done) => {
+  // verify username and password and call 'done' if correct
+  User.findOne({ username }, (err, user) => {
+    if (err) { return done(err); }
+    if (!user) { return done(null, false); }
+
+    user.comparePassword(password, (error, isMatch) => {
+      if (error) { return done(error); }
+      if (!isMatch) { return done(null, false); }
+      return done(null, user);
+    });
+  });
+});
+
+
+// JWT Strategy setup
+const jwtOptions = {
+  jwtFromRequest: ExtractJwt.fromHeader('token'),
+  secretOrKey: config.secret,
+};
+
+const jwtLoginStrategy = new JwtStragety(jwtOptions, (payload, done) => {
+  // check if user id in payload exist in database
+  User.findById(payload.sub, (err, user) => {
+    if (err) { return done(err, false); }
+    if (user) {
+      done(null, user);
+    } else {
+      done(null, false);
+    }
+  });
+});
+
+passport.use(facebookLoginStrategy);
+passport.use(googleLoginStrategy);
+passport.use(jwtLoginStrategy);
+passport.use(localLogin);
+
